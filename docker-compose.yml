@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - '8000:8000'
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env
     depends_on:
@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: senha
       POSTGRES_DB: beckglobal
     ports:
-      - '5432:5432'
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
