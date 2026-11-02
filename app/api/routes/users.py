@@ -33,12 +33,21 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 
 @router.get('/', response_model=list[UserPublic])
-def list_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def list_users(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+):
     return db.query(User).offset(skip).limit(limit).all()
 
 
 @router.get('/{user_id}', response_model=UserPublic)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
@@ -46,7 +55,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.put('/{user_id}', response_model=UserPublic)
-def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db)):
+def update_user(
+    user_id: int,
+    data: UserUpdate,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
@@ -64,7 +78,11 @@ def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db)):
 
 
 @router.delete('/{user_id}', response_model=dict)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
