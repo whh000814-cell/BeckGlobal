@@ -1,4 +1,5 @@
 import pytest
+from fastapi import status
 from fastapi.testclient import TestClient
 
 
@@ -11,7 +12,7 @@ def register_user(client: TestClient) -> dict:
             'password': 'correct-horse-battery-staple',
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == status.HTTP_201_CREATED
     return response.json()
 
 
@@ -23,8 +24,8 @@ def login_headers(client: TestClient) -> dict[str, str]:
             'password': 'correct-horse-battery-staple',
         },
     )
-    assert response.status_code == 200
-    return {'Authorization': f"Bearer {response.json()['access_token']}"}
+    assert response.status_code == status.HTTP_200_OK
+    return {'Authorization': f'Bearer {response.json()["access_token"]}'}
 
 
 @pytest.mark.parametrize(
@@ -46,7 +47,7 @@ def test_user_management_routes_reject_anonymous_requests(
 
     response = client.request(method, path, json=json_body)
 
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_registration_remains_public(client: TestClient):
@@ -59,7 +60,7 @@ def test_registration_remains_public(client: TestClient):
         },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 def test_authenticated_user_can_list_and_read_users(client: TestClient):
@@ -67,9 +68,9 @@ def test_authenticated_user_can_list_and_read_users(client: TestClient):
     headers = login_headers(client)
 
     list_response = client.get('/users/', headers=headers)
-    detail_response = client.get(f"/users/{user['id']}", headers=headers)
+    detail_response = client.get(f'/users/{user["id"]}', headers=headers)
 
-    assert list_response.status_code == 200
+    assert list_response.status_code == status.HTTP_200_OK
     assert list_response.json() == [user]
-    assert detail_response.status_code == 200
+    assert detail_response.status_code == status.HTTP_200_OK
     assert detail_response.json() == user

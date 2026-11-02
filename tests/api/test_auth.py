@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 import pytest
+from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -18,7 +19,7 @@ def register_user(client: TestClient) -> dict:
             'password': 'correct-horse-battery-staple',
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == status.HTTP_201_CREATED
     return response.json()
 
 
@@ -30,8 +31,8 @@ def login_headers(client: TestClient) -> dict[str, str]:
             'password': 'correct-horse-battery-staple',
         },
     )
-    assert response.status_code == 200
-    return {'Authorization': f"Bearer {response.json()['access_token']}"}
+    assert response.status_code == status.HTTP_200_OK
+    return {'Authorization': f'Bearer {response.json()["access_token"]}'}
 
 
 def test_login_returns_bearer_token_and_registration_hashes_password(
@@ -51,7 +52,7 @@ def test_login_returns_bearer_token_and_registration_hashes_password(
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json()['token_type'] == 'bearer'
     payload = jwt.decode(
         response.json()['access_token'],
@@ -80,7 +81,7 @@ def test_login_rejects_invalid_credentials_without_disclosing_which_failed(
         json={'email': email, 'password': password},
     )
 
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Invalid email or password'}
     assert response.headers['www-authenticate'] == 'Bearer'
 
@@ -90,7 +91,7 @@ def test_current_user_returns_database_user(client: TestClient):
 
     response = client.get('/users/me', headers=login_headers(client))
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         'id': user['id'],
         'name': 'Taylor Smith',
@@ -130,6 +131,6 @@ def test_current_user_rejects_unresolvable_identity(
         headers={'Authorization': f'Bearer {token}'},
     )
 
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Could not validate credentials'}
     assert response.headers['www-authenticate'] == 'Bearer'
